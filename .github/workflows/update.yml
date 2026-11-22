@@ -1,0 +1,35 @@
+name: Update sioyek revision
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Bump formula to upstream development HEAD
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha=$(git ls-remote https://github.com/ahrm/sioyek refs/heads/development | cut -f1)
+          date=$(gh api repos/ahrm/sioyek/commits/"$sha" --jq '.commit.committer.date[:10]' | tr -d -)
+          version="${date}-${sha:0:7}"
+          sed -i -E \
+            -e "s|(url \"https://github.com/ahrm/sioyek.git\", revision: \")[0-9a-f]+(\")|\1${sha}\2|" \
+            -e "s|^(  version \").*(\")|\1${version}\2|" \
+            Formula/sioyek.rb
+          if git diff --quiet; then
+            echo "Already at ${version}"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "sioyek ${version}"
+          git push
