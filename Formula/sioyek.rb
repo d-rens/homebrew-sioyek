@@ -1,6 +1,8 @@
 class Sioyek < Formula
   desc "PDF viewer designed for reading research papers and technical books"
   homepage "https://sioyek.info"
+  url "https://github.com/ahrm/sioyek.git", branch: "development", submodules: true
+  version "development"
   license "GPL-3.0-or-later"
   head "https://github.com/ahrm/sioyek.git", branch: "development", submodules: true
 
